@@ -4,6 +4,7 @@ class UsersIndexTest < ActionDispatch::IntegrationTest
   def setup
     @admin = users(:michael)
     @non_admin = users(:archer)
+    @non_active = User.create(name: "Cyril Figgis", email: "accounts@example.gov", password: "password")
   end
 
   # test "index including pagination" do
@@ -32,6 +33,9 @@ class UsersIndexTest < ActionDispatch::IntegrationTest
         assert_select "a[href=?]", user_path(user), text: "delete"
       end
     end
+    # Cyril has not been activated and therefore is not displayed
+    assert_select "a[href=?]", user_path(@non_active), text: @non_active.name, count: 0
+
 
     assert_difference "User.count", -1 do
       delete user_path(@non_admin)
@@ -42,5 +46,6 @@ class UsersIndexTest < ActionDispatch::IntegrationTest
     log_in_as(@non_admin)
     get users_path
     assert_select "a", text: "delete", count: 0
+    assert_select "a[href=?]", user_path(@non_active), text: @non_active.name, count: 0
   end
 end
